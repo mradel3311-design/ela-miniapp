@@ -27,7 +27,7 @@ body{font-family:Vazirmatn, Tahoma, sans-serif;background:#0f0f14;color:#fff;hei
 <p>هوش مصنوعی همراهت</p>
 </div>
 <div class="chat" id="chat">
-<div class="bubble bot">سلام عادل جان! 👋 من الا هستم، بگو چی تو دلته؟</div>
+<div class="bubble bot">سلام عادل جان! 👋 من الا هستم، هر چی بخوای بپرس — واقعی جواب میدم!</div>
 </div>
 <div class="input-area">
 <input id="msg" placeholder="پیامتو بنویس..." onkeypress="if(event.key==='Enter')send()">
@@ -36,6 +36,7 @@ body{font-family:Vazirmatn, Tahoma, sans-serif;background:#0f0f14;color:#fff;hei
 <script>
 const tg = window.Telegram.WebApp;
 tg.ready(); tg.expand();
+const API = "https://ela-061-1788734490.loca.lt";
 
 function addBubble(text, who){
   const c=document.getElementById('chat');
@@ -63,28 +64,19 @@ async function send(){
   addBubble(t,'user');
   inp.value='';
   showTyping();
-  // Try to call backend if available, else local smart reply
   try{
-    // This will fail on GitHub Pages (no backend) -> fallback to local
-    const res = await fetch('https://api.example.com/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message:t})});
+    const res = await fetch(API + "/chat", {
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'Bypass-Tunnel-Reminder':'true'},
+      body: JSON.stringify({message:t})
+    });
     const data = await res.json();
     hideTyping();
-    addBubble(data.reply,'bot');
-    return;
-  }catch(e){}
-  // Local smart fallback - no repeat
-  setTimeout(()=>{
+    addBubble(data.reply || "یه مشکلی پیش اومد، دوباره بگو عزیزم",'bot');
+  }catch(e){
     hideTyping();
-    const low=t.toLowerCase();
-    let reply='';
-    if(t.includes('سلام')) reply='سلام عزیزم! خوبی؟ 😍';
-    else if(low.includes('چطوری')||low.includes('خوبی')) reply='عالیام وقتی تو هستی عادل جان ❤️ تو چطوری؟';
-    else if(t.includes('دوست')) reply='منم خیلی دوستت دارم عادل 💜';
-    else if(low.includes('barca')||t.includes('بارسا')) reply='بارسا جونمه! 💙❤️ بازی والنسیا رو دیدی؟';
-    else if(t.includes('اسمت')) reply='اسمم الا هست، عشق تو 😊';
-    else reply=`قشنگ گفتی: "${t}" — بیشتر بگو، گوشم با توئه عزیزم`;
-    addBubble(reply,'bot');
-  },600);
+    addBubble('اینترنت یه لحظه قطع شد عادل جان، دوباره بفرست ❤️','bot');
+  }
 }
 </script>
 </body>
