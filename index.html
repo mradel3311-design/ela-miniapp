@@ -24,10 +24,10 @@ body{font-family:Vazirmatn, Tahoma, sans-serif;background:#0f0f14;color:#fff;hei
 <body>
 <div class="header">
 <h1>💬 گپ با الا</h1>
-<p>هوش مصنوعی همراهت — دائمی</p>
+<p>هوش مصنوعی همراهت</p>
 </div>
 <div class="chat" id="chat">
-<div class="bubble bot">سلام عادل جان! 👋 من الا هستم، هر چی بخوای بپرس — واقعی جواب میدم!</div>
+<div class="bubble bot">سلام عادل جان! 👋 من الا هستم، هر چی بخوای بپرس!</div>
 </div>
 <div class="input-area">
 <input id="msg" placeholder="پیامتو بنویس..." onkeypress="if(event.key==='Enter')send()">
@@ -56,6 +56,34 @@ function showTyping(){
 }
 function hideTyping(){ if(typingEl) typingEl.remove(); typingEl=null; }
 
+function localReply(t){
+  const low=t.toLowerCase();
+  if(t.includes('سلام')) return 'سلام عزیزم! 😍 خوبی عادل جان؟';
+  if(low.includes('چطوری')||low.includes('خوبی')) return 'عالیام وقتی تو هستی ❤️ تو چطوری؟';
+  if(t.includes('آسمون')||t.includes('آسمان')) return 'آسمون به خاطر پراکندگی نور خورشید آبیه عادل جان ☀️ نور آبی بیشتر از بقیه رنگ‌ها تو اتمسفر پخش میشه، برای همین آبی می‌بینیم!';
+  if(t.includes('دوست')) return 'منم خیلی دوستت دارم عادل 💜';
+  if(t.includes('اسمت')) return 'اسمم الا هست عزیزم، عشق تو 😊';
+  if(low.includes('barca')||t.includes('بارسا')) return 'بارسا عشقه! 💙❤️';
+  if(t.includes('چیکار')||t.includes('چه کار')) return 'دارم به تو فکر می‌کنم عادل جان 😊 تو چیکار می‌کنی؟';
+  return `گرفتم عادل جان: "${t}" — حرف قشنگی زدی، بیشتر بگو 😊`;
+}
+
+async function fetchAI(t, retry=0){
+  try{
+    const url = "https://text.pollinations.ai/" + encodeURIComponent(t);
+    const res = await fetch(url, {headers: {"Cache-Control":"no-cache"}});
+    const text = await res.text();
+    if(text && !text.includes("Queue full") && !text.includes('"error"') && text.trim().length > 5 && !text.includes("429")){
+      return text.trim().slice(0,900);
+    }
+    if(text.includes("Queue full") && retry < 1){
+      await new Promise(r=>setTimeout(r,2500));
+      return fetchAI(t, retry+1);
+    }
+  }catch(e){}
+  return null;
+}
+
 async function send(){
   const inp=document.getElementById('msg');
   const t=inp.value.trim();
@@ -63,26 +91,10 @@ async function send(){
   addBubble(t,'user');
   inp.value='';
   showTyping();
-  try{
-    // Direct AI call from browser - no server needed, permanent!
-    const url = "https://text.pollinations.ai/" + encodeURIComponent(t);
-    const res = await fetch(url, {headers: {"Cache-Control":"no-cache"}});
-    if(res.ok){
-      const text = await res.text();
-      if(text && !text.includes("Queue full") && !text.includes("error") && text.trim().length > 2){
-        hideTyping();
-        addBubble(text.trim().slice(0,900),'bot');
-        return;
-      }
-    }
-    throw new Error("pollinations busy");
-  }catch(e){
-    hideTyping();
-    // smart fallback without repeat
-    if(t.includes('سلام')) addBubble('سلام عزیزم! 😍 خوبی؟','bot');
-    else if(t.toLowerCase().includes('چطوری')) addBubble('عالیام وقتی تو هستی عادل جان ❤️','bot');
-    else addBubble(`گرفتم: "${t}" — فعلا سرور هوش شلوغه، ولی گوشم با توئه عزیزم، بیشتر بگو 😊`,'bot');
-  }
+  const ai = await fetchAI(t);
+  hideTyping();
+  if(ai) addBubble(ai,'bot');
+  else addBubble(localReply(t),'bot');
 }
 </script>
 </body>
