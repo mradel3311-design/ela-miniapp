@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>گپ با الا</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Vazirmatn, Tahoma, sans-serif;background:#0f0f14;color:#fff;height:100vh;display:flex;flex-direction:column}
+.header{background:linear-gradient(135deg,#6c5ce7,#a855f7);padding:16px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.header h1{font-size:18px}
+.header p{font-size:12px;opacity:.8;margin-top:4px}
+.chat{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;background:#18181f}
+.bubble{max-width:80%;padding:12px 16px;border-radius:18px;font-size:14px;line-height:1.6;animation:pop .2s ease}
+.user{align-self:flex-start;background:#6c5ce7;border-bottom-right-radius:4px}
+.bot{align-self:flex-end;background:#2a2a35;border-bottom-left-radius:4px}
+.input-area{display:flex;gap:8px;padding:12px;background:#1e1e2a;border-top:1px solid #333}
+.input-area input{flex:1;background:#2a2a35;border:none;border-radius:24px;padding:12px 16px;color:#fff;outline:none;font-size:14px}
+.input-area button{background:#6c5ce7;border:none;border-radius:50%;width:44px;height:44px;cursor:pointer;font-size:18px;color:#fff;flex-shrink:0}
+.input-area button:active{transform:scale(.95)}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.hint{text-align:center;color:#888;font-size:12px;padding:8px}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>💬 گپ با الا</h1>
+<p>هوش مصنوعی همراهت — هر چی بخوای بپرس</p>
+</div>
+<div class="chat" id="chat">
+<div class="bubble bot">سلام عادل جان! 👋 من الا هستم، هر چی بخوای میتونی ازم بپرسی. چطور کمکت کنم؟</div>
+<div class="hint">پیامات مستقیم به ربات تلگرام ارسال میشه</div>
+</div>
+<div class="input-area">
+<input id="msg" placeholder="پیامتو بنویس..." onkeypress="if(event.key==='Enter')send()">
+<button onclick="send()">➤</button>
+</div>
+<script>
+const tg = window.Telegram.WebApp;
+tg.ready(); tg.expand();
+document.body.style.backgroundColor = tg.backgroundColor || '#0f0f14';
+
+function addBubble(text, who){
+  const c=document.getElementById('chat');
+  const b=document.createElement('div');
+  b.className='bubble '+who;
+  b.textContent=text;
+  c.appendChild(b);
+  c.scrollTop=c.scrollHeight;
+}
+
+function send(){
+  const inp=document.getElementById('msg');
+  const t=inp.value.trim();
+  if(!t) return;
+  addBubble(t,'user');
+  inp.value='';
+  // send to bot via Telegram WebApp
+  try{ tg.sendData(t); }catch(e){}
+  // fallback: show typing then reply hint
+  setTimeout(()=>{
+    addBubble('پیامت رسید عادل جان! جوابتو تو خود ربات برات میفرستم ❤️','bot');
+  },600);
+  // also try to open bot chat
+  setTimeout(()=>{ try{tg.close()}catch(e){} },1200);
+}
+</script>
+</body>
+</html>
